@@ -13,6 +13,7 @@ import javax.security.auth.login.LoginException;
 
 public class Boot{
 	private static int loadBots;
+	public static boolean loadend;
 	public static void load(String path) throws IOException {
 		HashMap<String,String> map=new HashMap<String,String>();
 		FileInputStream fos=new FileInputStream(path);
@@ -57,6 +58,7 @@ public class Boot{
 				e.printStackTrace();
 			}
 		}
+		loadend=true;
 	}
 	public static void loadBOT(Map<String,String> map) {
 		String token=map.get("token");

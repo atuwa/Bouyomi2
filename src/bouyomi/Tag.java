@@ -512,6 +512,7 @@ public class Tag{
 		//System.out.println("タグ消去結果　"+con.text);
 	}
 	public boolean isAdmin(){
+		if(BouyomiProxy.admin==null)return false;
 		return BouyomiProxy.admin.isAdmin(con.userid);
 	}
 }

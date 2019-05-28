@@ -78,15 +78,11 @@ public class DiscordBOT extends ListenerAdapter{
 		id=lastID;
 		lastID++;
 		// optionally block until JDA is ready
-		new Thread("DiscordClient"+id) {
-			public void run() {
-				try{
-					jda.awaitReady();
-				}catch(InterruptedException e){
-					e.printStackTrace();
-				}
-			}
-		}.start();
+		try{
+			jda.awaitReady();
+		}catch(InterruptedException e){
+			e.printStackTrace();
+		}
 	}
 	/**サーバー指定のホワイトリスト*/
 	public List<String> whiteListS() {
@@ -112,6 +108,13 @@ public class DiscordBOT extends ListenerAdapter{
 		if(event.isFromType(ChannelType.PRIVATE)){
 			System.out.printf("[PM] %s: %s\n",event.getAuthor().getName(),event.getMessage().getContentDisplay());
 		}else{
+			if(!Boot.loadend)while(!Boot.loadend) {
+				try{
+					Thread.sleep(100);
+				}catch(InterruptedException e){
+					e.printStackTrace();
+				}
+			}
 			//test(event);
 			if(whiteListS.isEmpty()||whiteListS.contains(event.getGuild().getId())){
 				String cid=event.getTextChannel().getId();

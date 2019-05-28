@@ -389,7 +389,7 @@ public class BouyomiProxy{
 		Socket soc=null;
 		try{
 			//System.out.println("棒読みちゃんに接続");
-			int tab=host.indexOf('\t');
+			int tab=host.indexOf(':');
 			if(tab<0||tab+1>host.length()) {
 				soc=new Socket("localhost",Integer.parseInt(host));
 			}else {
