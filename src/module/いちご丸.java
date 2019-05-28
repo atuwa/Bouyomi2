@@ -44,7 +44,9 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 	public void call(Tag tag){
 		if(tag.con.text.equals("痩せろデブ")) {
 			if("534060228099178537".equals(tag.con.userid)||tag.isAdmin()) {
-				new 抽選(tag).呼び出し();
+				抽選 t=new 抽選(tag);
+				if("534060228099178537".equals(tag.con.userid))t.いちご丸が呼び出し();
+				else t.呼び出し();
 			}else if(今日引いた人達.contains(tag.con.userid)) {
 				DiscordAPI.chatDefaultHost(tag,"今日はもう引いたでしょ/*"+tag.con.user+"さん");
 			}else new 抽選(tag).呼び出し();
@@ -140,6 +142,13 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 		private int ランダム値;
 		public 抽選(Tag tag){
 			this.tag=tag;
+		}
+		public void いちご丸が呼び出し() {
+			ランダム値=ランダム生成源.nextInt(1000);//0～1000のランダムを生成
+			if(ランダム値<5)まさかこれを引くとは();
+			else if(ランダム値<10)むしゃむしゃ();
+			else if(ランダム値<260)行く();
+			else やだ();
 		}
 		public void 呼び出し() {
 			今日引いた人達.add(tag.con.userid);
