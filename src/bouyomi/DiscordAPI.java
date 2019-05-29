@@ -12,7 +12,7 @@ public class DiscordAPI{
 		if(DiscordBOT.DefaultHost==null)return false;
 		if(con instanceof BouyomiBOTConection) {
 			BouyomiBOTConection botc=(BouyomiBOTConection)con;
-			DiscordBOT.DefaultHost.log("「"+botc.server.getName()+"」の「"+botc.event.getTextChannel().getName()+"」で\n"+string);
+			DiscordBOT.DefaultHost.log("「"+botc.server.getName()+"」の「"+botc.event.getTextChannel().getName()+"」で\n```\n"+string+"\n```");
 		}
 		return DiscordBOT.DefaultHost.send(con,string);
 	}
@@ -20,7 +20,7 @@ public class DiscordAPI{
 		if(DiscordBOT.DefaultHost==null)return false;
 		Guild g=DiscordBOT.DefaultHost.jda.getGuildById(gid);
 		TextChannel ch=DiscordBOT.DefaultHost.jda.getTextChannelById(cid);
-		DiscordBOT.DefaultHost.log("「"+g.getName()+"」の「"+ch.getName()+"」で\n"+c);
+		DiscordBOT.DefaultHost.log("「"+g.getName()+"」の「"+ch.getName()+"」で\n```\n"+c+"\n```");
 		return DiscordBOT.DefaultHost.send(gid,cid,c);
 	}
 }

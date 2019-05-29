@@ -1,12 +1,7 @@
 package bouyomi;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -30,11 +25,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
-import javax.imageio.ImageIO;
 import javax.security.auth.login.LoginException;
 
 import net.dv8tion.jda.api.AccountType;
@@ -254,34 +246,6 @@ public class DiscordBOT extends ListenerAdapter{
 		sb.append(event.getMember().getUser().getId()).append("\n");
 		sb.append(event.getMessage().getContentDisplay());
 		System.out.println(sb);
-		if(event.getTextChannel().getId().equals("539114426310066176")&&event.getMember().getUser().getId().equals("544529530866368522")){
-			if(event.getTextChannel().canTalk())System.out.println("test");
-			String s=event.getMessage().getContentRaw();
-			String p=Pattern.quote(".");
-			Matcher m=Pattern.compile("[0-9]{1,3}"+p+"[0-9]{1,3}"+p+"[0-9]{1,3}"+p+"[0-9]{1,3}").matcher(s);
-			String msg;
-			if(m.find()) {
-				msg=m.group();
-				if(!msg.equals(s))msg="余計な物が";
-			}else msg="IPアドレスじゃない";
-			event.getTextChannel().sendMessage(new MessageBuilder().append(msg).build()).queue();
-			try{
-				BufferedImage image=new BufferedImage(300,70,BufferedImage.TYPE_4BYTE_ABGR);
-				Graphics2D g=image.createGraphics();
-				g.setColor(Color.white);
-				g.fillRect(0,0,300,100);
-				g.setFont(new Font(null,Font.BOLD,30));
-				g.setColor(Color.black);
-				g.drawString(msg,0,40);
-				Thread.sleep(200);
-				ByteArrayOutputStream os=new ByteArrayOutputStream();
-				ImageIO.write(image,"png",os);
-				byte[] ba=os.toByteArray();
-				event.getTextChannel().sendFile(ba,"res.png").queue();
-			}catch(IOException | InterruptedException e){
-				e.printStackTrace();
-			}
-		}
 	}
 	public boolean chat(BouyomiConection bc,String c){
 		return send(bc,c);
