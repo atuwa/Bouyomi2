@@ -18,7 +18,7 @@ public class ModuleLoader{
 		if(!f.isDirectory())return;
 		path=f;
 		try{
-			jars.add(f.toURI().toURL());
+			jars.add(f.getParentFile().toURI().toURL());
 		}catch(MalformedURLException e1){
 			e1.printStackTrace();
 		}
@@ -32,7 +32,8 @@ public class ModuleLoader{
 			String name=s.substring(0,i);
 			System.out.println("モジュール"+name);
 			try{
-				Class<?> c=loader.loadClass(f.getName()+"."+name);
+				Class<?> c=Class.forName(f.getName()+"."+name,true,loader);
+				//Class<?> c=loader.loadClass(f.getName()+"."+name);//どっちでもよさそう
 				load(c.newInstance());
 			}catch(InstantiationException | IllegalAccessException e){
 				//e.printStackTrace();
@@ -78,6 +79,12 @@ public class ModuleLoader{
 		if(modules.isEmpty())return;
 		for(IModule m:modules){
 			m.event(e);
+		}
+	}
+	public void precall(Tag t){
+		if(modules.isEmpty())return;
+		for(IModule m:modules){
+			m.precall(t);
 		}
 	}
 }

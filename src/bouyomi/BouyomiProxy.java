@@ -101,24 +101,6 @@ public class BouyomiProxy{
 
 		if(args.length>5) {
 			if(args[5].equals("-"))command="";
-			else command=args[5];
-		}else {
-			System.out.println("ひらがな変換の投稿先BOTのID");
-			command=br.readLine();//1行取得する
-		}
-		//0文字だったら無し、それ以外だったらそれ
-		if(!command.isEmpty()) {
-			for(DiscordBOT b:DiscordBOT.bots) {
-				if(b.jda.getSelfUser().getId().equals(command)) {
-					Japanese.chat_server=b;
-					break;
-				}
-			}
-		}
-		System.out.println("ひらがな変換の投稿先BOTのID"+(Japanese.chat_server==null?"無し":Japanese.chat_server.jda.getSelfUser().getName()));
-
-		if(args.length>6) {
-			if(args[6].equals("-"))command="";
 			else command=args[6];
 		}else {
 			System.out.println("mp3とwavファイルを再生するサーバのアドレス");
@@ -128,8 +110,8 @@ public class BouyomiProxy{
 		if(!command.isEmpty())MusicPlayerAPI.host=command;
 		System.out.println("mp3とwavファイルを再生するサーバ"+(MusicPlayerAPI.host==null?"無し":MusicPlayerAPI.host));
 
-		if(args.length>7) {
-			if(args[7].equals("-"))command="";
+		if(args.length>6) {
+			if(args[6].equals("-"))command="";
 			else command=args[7];
 		}else {
 			System.out.println("ログファイル");
@@ -139,9 +121,9 @@ public class BouyomiProxy{
 		if(!command.isEmpty())logger=new SaveProxyData(command);
 		System.out.println("ログ"+(logger==null?"無し":logger.file));
 
-		if(args.length>8) {
-			if(args[8].equals("-"))command="";
-			else command=args[8];
+		if(args.length>7) {
+			if(args[7].equals("-"))command="";
+			else command=args[7];
 		}
 		//0文字だったら無し、それ以外だったらそれ
 		File modulePath=null;
@@ -150,9 +132,9 @@ public class BouyomiProxy{
 			modulePath=new File(command);
 		}
 
-		if(args.length>9) {
-			if(args[9].equals("-"))command="";
-			else command=args[9];
+		if(args.length>8) {
+			if(args[8].equals("-"))command="";
+			else command=args[8];
 		}
 		//0文字だったら無し、それ以外だったらそれ
 		if(!command.isEmpty()) {
@@ -234,9 +216,6 @@ public class BouyomiProxy{
 		DailyUpdate.init();
 		try{
 			load(Config,"config.txt");
-			if("無効".equals(Config.get("平仮名変換"))){
-				Japanese.active=false;
-			}
 			if(Config.containsKey("初期音量")) {
 				try{
 					TubeAPI.DefaultVol=Integer.parseInt(Config.get("初期音量"));

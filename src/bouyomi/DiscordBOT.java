@@ -13,7 +13,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -23,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -30,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import javax.security.auth.login.LoginException;
 
@@ -44,8 +48,17 @@ import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.exceptions.HttpException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.internal.requests.Requester;
+import net.dv8tion.jda.internal.utils.Checks;
+import net.dv8tion.jda.internal.utils.IOUtil;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class DiscordBOT extends ListenerAdapter{
 	public JDA jda;
@@ -173,6 +186,61 @@ public class DiscordBOT extends ListenerAdapter{
 	}
 	public void setUserName(String name) {
 		jda.getSelfUser().getManager().setName(name).queue();
+	}
+	public void downloadFile(String url,File file) throws FileNotFoundException {
+		FileOutputStream fos=new FileOutputStream(file);
+		try{
+			downloadOutputStream(url,fos);
+		}catch(RuntimeException re) {
+			re.printStackTrace();
+		}finally {
+			IOUtil.silentClose(fos);
+		}
+	}
+	public void downloadOutputStream(String url,OutputStream os) {
+        Checks.notNull(url, "url");
+        Checks.notNull(os, "OutputStream");
+        CompletableFuture<InputStream> future = new CompletableFuture<>();
+		Request req=new Request.Builder()
+				.url(url).addHeader("user-agent", Requester.USER_AGENT)
+				.addHeader("accept-encoding", "gzip, deflate").build();
+		OkHttpClient httpClient = jda.getHttpClient();
+		httpClient.newCall(req).enqueue(new Callback(){
+			@Override
+			public void onFailure(@Nonnull Call call, @Nonnull IOException e){
+				future.completeExceptionally(new UncheckedIOException(e));
+			}
+			@Override
+			public void onResponse(@Nonnull Call call, @Nonnull Response response)throws IOException{
+				if (response.isSuccessful()){
+					InputStream body = Requester.getBody(response);
+					if (!future.complete(body))
+						IOUtil.silentClose(response);
+				}else{
+					future.completeExceptionally(new HttpException(response.code() + ": " + response.message()));
+					IOUtil.silentClose(response);
+				}
+			}
+		});
+		CompletableFuture<OutputStream> cf=future.thenApplyAsync((stream) -> {
+			try{
+				byte[] buf = new byte[1024];
+				int count;
+				while ((count = stream.read(buf)) > 0){
+					os.write(buf, 0, count);
+				}
+				return os;
+			}catch (IOException e){
+				throw new UncheckedIOException(e);
+			}finally{
+				IOUtil.silentClose(stream);
+			}
+		}, jda.getCallbackPool());
+		try{
+			cf.get(1000,TimeUnit.MILLISECONDS);
+		}catch(Exception e1){
+			e1.printStackTrace();
+		}
 	}
 	@SuppressWarnings("unused")
 	private void test(MessageReceivedEvent event){

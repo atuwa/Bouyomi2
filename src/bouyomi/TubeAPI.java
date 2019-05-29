@@ -36,6 +36,7 @@ public class TubeAPI{
 	private static ExecutorService pool=new ThreadPoolExecutor(0,10,60L,TimeUnit.SECONDS,
             new SynchronousQueue<Runnable>());
 	protected static int stopTime=480000;
+	public static long lastComment=System.currentTimeMillis();
 	public static class PlayVideoEvent implements BouyomiEvent{
 		public String videoID;
 		public PlayVideoEvent(String videoID){
@@ -91,7 +92,7 @@ public class TubeAPI{
 				playHistory.remove(maxHistory-1);
 			}
 			playHistory.add(0,videoID);
-			DiscordBOT.DefaultHost.log("動画再生="+IDtoURL(videoID));
+			if(DiscordBOT.DefaultHost!=null)DiscordBOT.DefaultHost.log("動画再生="+IDtoURL(videoID)+"\n再生者="+lastPlayUser);
 			try{
 				FileOutputStream fos=new FileOutputStream(HistoryFile,true);//追加モードでファイルを開く
 				try{
@@ -389,11 +390,11 @@ public class TubeAPI{
 				while(true) {
 					try{
 						Thread.sleep(60000);
-						if(nowPlayVideo&&System.currentTimeMillis()-BouyomiProxy.lastComment>stopTime) {
+						if(nowPlayVideo&&System.currentTimeMillis()-lastComment>stopTime) {
 							if("NOT PLAYING".equals(getLine("status")))nowPlayVideo=false;
 							else{
 								System.out.println("動画自動停止");
-								BouyomiProxy.talk(BouyomiProxy.bouyomiHost,"/動画停止()");
+								BouyomiProxy.talk("localhost:"+BouyomiProxy.proxy_port,"/動画停止()");
 							}
 						}
 					}catch(InterruptedException e){

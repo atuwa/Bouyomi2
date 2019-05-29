@@ -132,12 +132,6 @@ public class BouyomiConection implements Runnable{
 				text=sb.toString().trim();
 			}
 		}
-		if(Japanese.trans(this, text)){
-			String n=text.replaceAll("nn","n");
-			if(!text.equals(n)){
-				text=n;
-			}
-		}
 		//文字データが取得できた時
 		//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
 		if(text.indexOf("教育(")>=0||text.indexOf("教育（")>=0){//教育機能を使おうとした時
@@ -264,10 +258,11 @@ public class BouyomiConection implements Runnable{
 				DiscordBOT b=DiscordBOT.bots.get(0);
 				StringWriter sw=new StringWriter();
 				sw.append("予期しない例外の発生\n発生時刻");
-				sw.append(sdf.format(new Date())).append("\n");
+				sw.append(sdf.format(new Date())).append("\n```\n");
 				PrintWriter pw=new PrintWriter(sw);
 				e.printStackTrace(pw);
 				pw.flush();
+				sw.append("\n```");
 				Guild g=b.jda.getGuildById(BouyomiProxy.log_guild);
 				TextChannel c=b.jda.getTextChannelById(BouyomiProxy.log_channel);
 				b.send(g,c,sw.toString());

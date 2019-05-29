@@ -44,21 +44,11 @@ public class Tag{
 			con.text="";
 			return;
 		}
+		if(module!=null)module.precall(this);
 		if(module!=null)module.call(this);
 		Counter.count(this);
 		BOT.tag(this);
-		String tag=getTag("平仮名変換");
-		if(tag!=null) {
-			Config.put("平仮名変換",tag);
-			if(tag.equals("有効")) {
-				Japanese.active=true;
-				con.addTask.add("平仮名変換機能を有効にしました");
-			}else if(tag.equals("無効")) {
-				Japanese.active=false;
-				con.addTask.add("平仮名変換機能を無効にしました");
-			}
-		}
-		tag=getTag("強制終了");
+		String tag=getTag("強制終了");
 		if(tag!=null) {
 			Pass.exit(tag);
 		}
@@ -155,7 +145,7 @@ public class Tag{
 		}
 		music();
 		if(video_host!=null) {//再生サーバが設定されている時
-			video();
+			if(con.speak)video();
 		}
 		if(module!=null)module.postcall(this);
 	}
@@ -211,6 +201,7 @@ public class Tag{
 	}
 	/**動画再生機能*/
 	public void video() {
+		TubeAPI.lastComment=System.currentTimeMillis();
 		String tag=getTag("動画再生");
 		if(tag!=null) {//動画再生
 			//System.out.println(text);//ログに残す
