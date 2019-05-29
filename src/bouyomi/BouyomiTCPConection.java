@@ -98,15 +98,11 @@ public class BouyomiTCPConection extends BouyomiConection{
 			if(index>0){
 				user=text.substring(0,index);
 				text=text.substring(index+key.length());
-				if(logger!=null) logger.log(user+"\t"+text);
-			}else if(s!=0xF001){
-				if(logger!=null) logger.log(text);
 			}
 		}
 		if(s==0xF001){
 			userid=readString(is);
 			user=readString(is);
-			if(logger!=null) logger.log(user+"\t"+text);
 		}
 	}
 	private void readMessage(InputStream is) throws IOException {

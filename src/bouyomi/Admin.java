@@ -12,7 +12,6 @@ public class Admin{
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		BouyomiProxy.module.load(this);
 	}
 	public boolean isAdmin(String id) {
 		if(id==null||id.isEmpty())return false;

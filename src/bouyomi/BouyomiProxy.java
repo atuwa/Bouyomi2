@@ -26,6 +26,7 @@ import java.util.function.BiConsumer;
 
 import bouyomi.Counter.CountData;
 import bouyomi.Counter.CountData.Count;
+import bouyomi.Util.SaveProxyData;
 
 /**棒読みちゃん専用のプロキシです*/
 public class BouyomiProxy{
@@ -35,7 +36,6 @@ public class BouyomiProxy{
 	public static int proxy_port;//棒読みちゃんのポート(サーバはlocalhost固定)
 	public static long lastComment=System.currentTimeMillis();
 	public static ModuleLoader module;
-	public static SaveProxyData logger;
 	public static Admin admin;
 	public static SaveProxyData study_log;
 	public static String log_guild=null,log_channel=null;
@@ -112,18 +112,7 @@ public class BouyomiProxy{
 
 		if(args.length>6) {
 			if(args[6].equals("-"))command="";
-			else command=args[7];
-		}else {
-			System.out.println("ログファイル");
-			command=br.readLine();//1行取得する
-		}
-		//0文字だったら無し、それ以外だったらそれ
-		if(!command.isEmpty())logger=new SaveProxyData(command);
-		System.out.println("ログ"+(logger==null?"無し":logger.file));
-
-		if(args.length>7) {
-			if(args[7].equals("-"))command="";
-			else command=args[7];
+			else command=args[6];
 		}
 		//0文字だったら無し、それ以外だったらそれ
 		File modulePath=null;
@@ -132,19 +121,6 @@ public class BouyomiProxy{
 			modulePath=new File(command);
 		}
 
-		if(args.length>8) {
-			if(args[8].equals("-"))command="";
-			else command=args[8];
-		}
-		//0文字だったら無し、それ以外だったらそれ
-		if(!command.isEmpty()) {
-			try{
-				Dic.loadStudy(command);
-			}catch(IOException e) {
-				e.printStackTrace();
-			}
-		}
-		System.out.println("教育"+(command.isEmpty()?"無し":command));
 
 		ServerSocket ss=new ServerSocket(proxy_port);//サーバ開始
 		new Thread("CommandReader"){
