@@ -26,6 +26,8 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import bouyomi.DiscordBOT.DiscordAPI;
+
 public class Counter{
 
 	private static String[] counterWords=null;

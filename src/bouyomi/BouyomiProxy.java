@@ -26,13 +26,14 @@ import java.util.function.BiConsumer;
 
 import bouyomi.Counter.CountData;
 import bouyomi.Counter.CountData.Count;
+import bouyomi.Util.Admin;
+import bouyomi.Util.Pass;
 import bouyomi.Util.SaveProxyData;
 
 /**棒読みちゃん専用のプロキシです*/
 public class BouyomiProxy{
 	public static HashMap<String,String> Config=new HashMap<String,String>();
 	private static String command;//コンソールに入力されたテキスト
-	public static String bouyomiHost;
 	public static int proxy_port;//棒読みちゃんのポート(サーバはlocalhost固定)
 	public static long lastComment=System.currentTimeMillis();
 	public static ModuleLoader module;
@@ -52,38 +53,10 @@ public class BouyomiProxy{
 		//0文字だったらデフォルト、それ以外だったら数値化
 		proxy_port=command.isEmpty()?50003:Integer.parseInt(command);
 		System.out.println("プロキシサーバのポート"+proxy_port);
-		if(args.length>1&&!args[1].equals("-"))command=args[1];
-		else {
-			System.out.println("棒読みちゃんのポート(半角数字)");
-			command=br.readLine();//1行取得する
-		}
-		//0文字だったらデフォルト、それ以外だったら数値化
-		bouyomiHost=command.isEmpty()?"50001":command;
-		System.out.println("棒読みちゃん"+bouyomiHost);
-		if(args.length>2&&!args[2].equals("-"))command=args[2];
-		else {
-			System.out.println("応答辞書の場所");
-			command=br.readLine();//1行取得する
-		}
-		//0文字だったらデフォルト、それ以外だったらそれ
-		BOT.BOTpath=command.isEmpty()?"BOT.dic":command;//相対パス
-		if(args.length>3) {
-			if(args[3].equals("-"))command="";
-			else command=args[3];
-		}else {
-			System.out.println("動画サーバのアドレス");
-			command=br.readLine();//1行取得する
-		}
-		//0文字だったら無し、それ以外だったらそれ
-		if(!command.isEmpty()) {
-			TubeAPI.video_host=command;
-			TubeAPI.loadHistory();
-		}
-		System.out.println("動画サーバ"+(TubeAPI.video_host==null?"無し":TubeAPI.video_host));
 
-		if(args.length>4) {
-			if(args[4].equals("-"))command="";
-			else command=args[4];
+		if(args.length>1) {
+			if(args[1].equals("-"))command="";
+			else command=args[1];
 		}else {
 			System.out.println("デフォルトの投稿先BOTのID");
 			command=br.readLine();//1行取得する
@@ -99,20 +72,9 @@ public class BouyomiProxy{
 		}
 		System.out.println("デフォルトの投稿先BOTのID"+(DiscordBOT.DefaultHost==null?"無し":DiscordBOT.DefaultHost.jda.getSelfUser().getName()));
 
-		if(args.length>5) {
-			if(args[5].equals("-"))command="";
-			else command=args[6];
-		}else {
-			System.out.println("mp3とwavファイルを再生するサーバのアドレス");
-			command=br.readLine();//1行取得する
-		}
-		//0文字だったら無し、それ以外だったらそれ
-		if(!command.isEmpty())MusicPlayerAPI.host=command;
-		System.out.println("mp3とwavファイルを再生するサーバ"+(MusicPlayerAPI.host==null?"無し":MusicPlayerAPI.host));
-
-		if(args.length>6) {
-			if(args[6].equals("-"))command="";
-			else command=args[6];
+		if(args.length>2) {
+			if(args[2].equals("-"))command="";
+			else command=args[2];
 		}
 		//0文字だったら無し、それ以外だったらそれ
 		File modulePath=null;
@@ -120,7 +82,6 @@ public class BouyomiProxy{
 			module=new ModuleLoader();
 			modulePath=new File(command);
 		}
-
 
 		ServerSocket ss=new ServerSocket(proxy_port);//サーバ開始
 		new Thread("CommandReader"){
@@ -131,9 +92,6 @@ public class BouyomiProxy{
 						if(command==null) System.exit(1);//読み込み失敗した場合終了
 						if(command.indexOf("clear")>=0) {
 							System.out.println("入力クリア="+command);
-						}else if(command.indexOf("stopTime")==0) {
-							TubeAPI.stopTime=Integer.parseInt(command.substring(8));
-							System.out.println("自動停止時間"+TubeAPI.stopTime+"ms");
 						}else if(command.equals("setCounter")) {
 							System.out.println("ユーザIDを入力");
 							command=br.readLine();//1行取得する
@@ -170,14 +128,8 @@ public class BouyomiProxy{
 							}catch(IOException e){
 								e.printStackTrace();
 							}
-						}else if("saveBOT".equals(command)) {
-							BOT.saveBOT();
-						}else if("loadBOT".equals(command)) {
-							BOT.loadBOT();
 						}else if("addPass".equals(command)) {
 							Pass.addPass();
-						}else if("listBOT".equals(command)) {
-							BOT.printList();
 						}else if("exit".equals(command)){
 							ss.close();//サーバ終了
 							System.exit(0);//プログラム終了
@@ -192,21 +144,9 @@ public class BouyomiProxy{
 		DailyUpdate.init();
 		try{
 			load(Config,"config.txt");
-			if(Config.containsKey("初期音量")) {
-				try{
-					TubeAPI.DefaultVol=Integer.parseInt(Config.get("初期音量"));
-				}catch(NumberFormatException e) {
-
-				}
-			}
 		}catch(IOException e){
 			e.printStackTrace();
 		}
-		Runtime.getRuntime().addShutdownHook(new Thread("save") {
-			public void run() {
-				BOT.saveBOT();
-			}
-		});
 		IAutoSave.Register(new IAutoSave() {
 			private int hash=Config.hashCode();
 			@Override
@@ -225,8 +165,6 @@ public class BouyomiProxy{
 				}
 			}
 		});
-		TubeAPI.setAutoStop();
-		BOT.loadBOT();
 		Counter.init();
 		admin=new Admin();
 		Pass.read();
@@ -341,6 +279,7 @@ public class BouyomiProxy{
 	/**棒読みちゃんに送信する
 	 * @param host */
 	public synchronized static void send(String host, byte[] data){
+		//System.out.println("棒読みちゃんに接続開始"+host);
 		Socket soc=null;
 		try{
 			//System.out.println("棒読みちゃんに接続");
@@ -352,13 +291,14 @@ public class BouyomiProxy{
 				String val=host.substring(tab+1);
 				soc=new Socket(key,Integer.parseInt(val));
 			}
+			soc.setSoTimeout(1000);
 			OutputStream os=soc.getOutputStream();
-			//System.out.println("棒読みちゃんに接続完了");
+			//System.out.println("棒読みちゃんに接続完了"+host);
 			os.write(data);
 			send_errors=0;
 		}catch(ConnectException e) {
 			send_errors++;
-			if(send_errors>5)System.out.println("棒読みちゃんに接続できません");
+			if(send_errors==5)System.err.println("棒読みちゃんに接続できません-"+host);
 		}catch(UnknownHostException e){
 			e.printStackTrace();
 		}catch(IOException e){
@@ -374,7 +314,7 @@ public class BouyomiProxy{
 	/**文字列を送信
 	 * @param command2 */
 	public static void talk(String host,String message){
-		//System.out.println(message);
+		//System.out.println("タスク実行="+message);
 		short volume=-1;//音量　棒読みちゃん設定
 		short speed=-1;//速度　棒読みちゃん設定
 		short tone=-1;//音程　棒読みちゃん設定

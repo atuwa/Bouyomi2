@@ -19,7 +19,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -57,7 +56,7 @@ public class DiscordBOT extends ListenerAdapter{
 	public final int id;
 	private List<String> whiteListS=new ArrayList<String>();
 	private List<String> whiteListC=new ArrayList<String>();
-	private List<String> speakListC=new ArrayList<String>();
+	private HashMap<String,String> speakListC=new HashMap<String,String>();
 	private static int lastID;
 	private static ExecutorService pool=new ThreadPoolExecutor(1, Integer.MAX_VALUE,60L, TimeUnit.SECONDS,
             new SynchronousQueue<Runnable>());
@@ -65,13 +64,36 @@ public class DiscordBOT extends ListenerAdapter{
 	public static ArrayList<DiscordBOT> bots=new ArrayList<DiscordBOT>();
 	public Map<String, String> conf=new HashMap<String, String>();
 	public static DiscordBOT DefaultHost;
-	public DiscordBOT(String token, Map<String, String> map) throws LoginException {
-		for(Entry<String, String> m:map.entrySet()) {
-			if(m.getValue().equals("active")) {
+	public static class DiscordAPI{
+		public static boolean chatDefaultHost(Tag tag,String string){
+			return chatDefaultHost(tag.con,string);
+		}
+		public static boolean chatDefaultHost(BouyomiConection con,String string){
+			if(DiscordBOT.DefaultHost==null)return false;
+			if(con instanceof BouyomiBOTConection) {
+				BouyomiBOTConection botc=(BouyomiBOTConection)con;
+				DiscordBOT.DefaultHost.log("「"+botc.server.getName()+"」の「"+botc.event.getTextChannel().getName()+"」で\n```\n"+string+"\n```");
+			}
+			return DiscordBOT.DefaultHost.send(con,string);
+		}
+		public static boolean chatDefaultHost(String gid,String cid,String c){
+			if(DiscordBOT.DefaultHost==null)return false;
+			Guild g=DiscordBOT.DefaultHost.jda.getGuildById(gid);
+			TextChannel ch=DiscordBOT.DefaultHost.jda.getTextChannelById(cid);
+			DiscordBOT.DefaultHost.log("「"+g.getName()+"」の「"+ch.getName()+"」で\n```\n"+c+"\n```");
+			return DiscordBOT.DefaultHost.send(gid,cid,c);
+		}
+	}
+	public DiscordBOT(String token, ListMap<String, String> map) throws LoginException {
+		String host=null;
+		for(ListMap.Value<String, String> m:map.rawList()) {
+			if(m.getValue().equals("host")) {
+				host=m.getKey();
+			}else if(m.getValue().equals("active")) {
 				whiteListC.add(m.getKey());
 			}else if(m.getValue().equals("yomu")) {
 				whiteListC.add(m.getKey());
-				speakListC.add(m.getKey());
+				speakListC.put(m.getKey(),host);
 			}else conf.put(m.getKey(),m.getValue());
 		}
 		try{
@@ -127,7 +149,8 @@ public class DiscordBOT extends ListenerAdapter{
 					threads++;
 					if(threads>3)System.err.println("警告：実行中のメッセージスレッドが"+threads+"件です");
 					BouyomiBOTConection con=new BouyomiBOTConection(event);
-					con.speak=speakListC.contains(cid);
+					String h=speakListC.get(cid);
+					if(con.speak=(h!=null))con.bouyomiHost=h;
 					pool.execute(con);//スレッドプールで実行する
 					threads--;
 				}else {
@@ -324,12 +347,12 @@ public class DiscordBOT extends ListenerAdapter{
 					e.printStackTrace(ps);
 					ps.println();
 				}catch(Exception ex) {
-					e.printStackTrace();
+					ex.printStackTrace();
 				}finally {
 					try{
 						bo.close();
 					}catch(IOException ex){
-						e.printStackTrace();
+						ex.printStackTrace();
 					}
 				}
 			}catch(FileNotFoundException | UnsupportedEncodingException ex){

@@ -6,8 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.security.auth.login.LoginException;
 
@@ -15,7 +13,7 @@ public class Boot{
 	private static int loadBots;
 	public static boolean loadend;
 	public static void load(String path) throws IOException {
-		HashMap<String,String> map=new HashMap<String,String>();
+		ListMap<String,String> map=new ListMap<String,String>();
 		FileInputStream fos=new FileInputStream(path);
 		InputStreamReader isr=new InputStreamReader(fos,StandardCharsets.UTF_8);
 		BufferedReader br=new BufferedReader(isr);
@@ -28,7 +26,7 @@ public class Boot{
 				if(tab<0||tab+1>line.length()) {
 					map.put(line,"");//タブがない時ORフォーマットがおかしいときは行をキーにして値を0文字に
 				}
-				System.out.println(line);
+				//System.out.println(line);
 				String key=line.substring(0,tab);
 				String val=line.substring(tab+1);
 				if(key.equals("token")) {
@@ -60,7 +58,7 @@ public class Boot{
 		}
 		loadend=true;
 	}
-	public static void loadBOT(Map<String,String> map) {
+	public static void loadBOT(ListMap<String,String> map) {
 		String token=map.get("token");
 		try{
 			loadBots++;

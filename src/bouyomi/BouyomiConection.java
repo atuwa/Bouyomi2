@@ -39,6 +39,7 @@ public class BouyomiConection implements Runnable{
 	 * ニックネームが必要な時はCounter.getUserName(id)を使う*/
 	public ArrayList<String> mentions=new ArrayList<String>();
 	public boolean speak=true;
+	public String bouyomiHost="localhost:50001";
 
 	private void urlcut(){
 		//URL省略処理
@@ -159,7 +160,6 @@ public class BouyomiConection implements Runnable{
 				addTask.add("要望リストに記録できませんでした");//失敗した事を追加で言う
 			}
 		}
-		BOT.call(this);
 		//text=Dic.ReplaceStudy(text);
 		//巨大数処理
 		text=text.replaceAll("[0-9]{8,}+","数字省略");
@@ -225,7 +225,7 @@ public class BouyomiConection implements Runnable{
 	}
 	public void run(){
 		if(text==null||text.length()<1)return;
-		//System.out.println("接続");
+		//System.out.println("接続="+text);
 		//long start=System.nanoTime();//TODO 処理時間計測用
 		try{
 			lastComment=System.currentTimeMillis();
@@ -247,6 +247,7 @@ public class BouyomiConection implements Runnable{
 				tag.call();
 				replace();
 			}
+			//System.out.println(text);
 			if(!mute&&!text.isEmpty()&&speak) talk(bouyomiHost,text);//作ったデータを送信
 			//System.out.println("Write");
 		}catch(Throwable e){
