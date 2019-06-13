@@ -48,15 +48,19 @@ public class Boot{
 		}finally {
 			br.close();
 		}
-		while(true) {
-			try{
-				if(loadBots<=DiscordBOT.bots.size())break;
-				Thread.sleep(50);
-			}catch(InterruptedException e){
-				e.printStackTrace();
+		new Thread("起動確認") {
+			public void run() {
+				while(true) {
+					try{
+						if(loadBots<=DiscordBOT.bots.size())break;
+						Thread.sleep(50);
+					}catch(InterruptedException e){
+						e.printStackTrace();
+					}
+				}
+				loadend=true;
 			}
-		}
-		loadend=true;
+		}.start();
 	}
 	public static void loadBOT(ListMap<String,String> map) {
 		String token=map.get("token");

@@ -16,7 +16,9 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import bouyomi.DiscordBOT.BouyomiBOTConection;
 import bouyomi.IModule.BouyomiEvent;
+import net.dv8tion.jda.api.entities.Emote;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 
@@ -288,12 +290,20 @@ public class BouyomiConection implements Runnable{
 		if(text.indexOf(":")>=0){//:がある時は絵文字抽出
 			//System.out.println(text);//ログに残す
 			//DiscordAPI.chatDefaultHost(text);
-			Matcher m=Pattern.compile("<a?:[a-zA-Z0-9]*:[0-9]++>").matcher(text);
+			Matcher m=Pattern.compile("<a?:\\S*:[0-9]++>").matcher(text);
+			//Matcher m=Pattern.compile("<a?:[a-zA-Z0-9]*:[0-9]++>").matcher(text);
 			StringBuffer sb = new StringBuffer();
 			while(m.find()) {
-				m.appendReplacement(sb, "");
-				Matcher m2=Pattern.compile(":[a-zA-Z0-9]*:[0-9]++").matcher(m.group());
-				m2.find();
+				Matcher m2=Pattern.compile("[0-9]++>").matcher(m.group());
+				//Matcher m2=Pattern.compile(":[a-zA-Z0-9]*:[0-9]++").matcher(m.group());
+				if(m2.find()&&this instanceof BouyomiBOTConection) {
+					String g=m2.group();
+					Emote e=((BouyomiBOTConection)this).server.getEmoteById(g.substring(0,g.length()-1));
+					if(e!=null) {
+						m.appendReplacement(sb, "");
+						//System.out.println(e.getName());
+					}else System.err.println(m2.group());
+				}else m.appendReplacement(sb, "");
 				//System.out.println(m2.group());
 			}
 			m.appendTail(sb);
