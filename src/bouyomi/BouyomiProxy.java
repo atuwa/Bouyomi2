@@ -219,6 +219,7 @@ public class BouyomiProxy{
 		FileInputStream fos=new FileInputStream(path);
 		InputStreamReader isr=new InputStreamReader(fos,StandardCharsets.UTF_8);
 		BufferedReader br=new BufferedReader(isr);
+		System.out.println("========="+path+"==============");
 		try {
 			while(true) {
 				String line=br.readLine();
@@ -255,6 +256,7 @@ public class BouyomiProxy{
 	public static void save(Map<String,String> map,String path) throws IOException {
 		FileOutputStream fos=new FileOutputStream(path);
 		final OutputStreamWriter osw=new OutputStreamWriter(fos,StandardCharsets.UTF_8);
+		System.out.println("========="+path+"==============");
 		try {
 			map.forEach(new BiConsumer<String,String>(){
 			@Override

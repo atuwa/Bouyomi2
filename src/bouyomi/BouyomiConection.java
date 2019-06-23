@@ -272,7 +272,7 @@ public class BouyomiConection implements Runnable{
 			}
 		}
 		//System.out.println((System.nanoTime()-start)+"ns");//TODO 処理時間計測用
-		if(!mute&&!addTask.isEmpty()){//データがArrayListの時
+		if(speak&&!mute&&!addTask.isEmpty()){//データがArrayListの時
 			StringBuilder sb=new StringBuilder();
 			for(String s:addTask){
 				sb.append(s).append("。");

@@ -54,9 +54,9 @@ import okhttp3.Response;
 public class DiscordBOT extends ListenerAdapter{
 	public JDA jda;
 	public final int id;
-	private List<String> whiteListS=new ArrayList<String>();
-	private List<String> whiteListC=new ArrayList<String>();
-	private HashMap<String,String> speakListC=new HashMap<String,String>();
+	public List<String> whiteListS=new ArrayList<String>();
+	public List<String> whiteListC=new ArrayList<String>();
+	public HashMap<String,String> speakListC=new HashMap<String,String>();
 	private static int lastID;
 	private static ExecutorService pool=new ThreadPoolExecutor(1, Integer.MAX_VALUE,60L, TimeUnit.SECONDS,
             new SynchronousQueue<Runnable>());
