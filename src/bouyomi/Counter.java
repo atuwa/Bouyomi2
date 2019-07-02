@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -364,7 +363,7 @@ public class Counter{
 		}
 		String nn=tag.getTag("ニックネーム");
 		if(nn!=null&&!nn.isEmpty()) {
-			String un=getUserName(nn);
+			String un=tag.getUserName(nn);
 			if(un==null)un="知らん";
 			if(tag.con.mute)un="/"+un;
 			DiscordAPI.chatDefaultHost(tag,un);
@@ -412,6 +411,7 @@ public class Counter{
 		c.append(df.format(new Date())).append("現在");
 		return c.toString();
 	}
+	/*
 	public static String getUserName(String id) {
 		CountData cd=usercount.get(id);
 		if(cd==null)return null;
@@ -423,6 +423,7 @@ public class Counter{
 		}
 		return null;
 	}
+	*/
 	public static interface ICountEvent{
 		public static final ArrayList<ICountEvent> list=new ArrayList<ICountEvent>();
 		public static void Register(ICountEvent a) {

@@ -215,11 +215,14 @@ public class BouyomiProxy{
 		}
 	}
 	public static void load(Map<String,String> map,String path) throws IOException {
+		load(map,path,true);
+	}
+	public static void load(Map<String,String> map,String path,boolean log) throws IOException {
 		map.clear();
 		FileInputStream fos=new FileInputStream(path);
 		InputStreamReader isr=new InputStreamReader(fos,StandardCharsets.UTF_8);
 		BufferedReader br=new BufferedReader(isr);
-		System.out.println("========="+path+"==============");
+		if(log)System.out.println("========="+path+"==============");
 		try {
 			while(true) {
 				String line=br.readLine();
@@ -231,7 +234,7 @@ public class BouyomiProxy{
 				}
 				String key=line.substring(0,tab);
 				String val=line.substring(tab+1);
-				System.out.println("k="+key+" v="+val);
+				if(log)System.out.println("k="+key+" v="+val);
 				map.put(key,val);
 			}
 		}catch(FileNotFoundException fnf){
@@ -254,9 +257,12 @@ public class BouyomiProxy{
 		}
 	}
 	public static void save(Map<String,String> map,String path) throws IOException {
+		save(map,path,true);
+	}
+	public static void save(Map<String,String> map,String path,boolean log) throws IOException {
 		FileOutputStream fos=new FileOutputStream(path);
 		final OutputStreamWriter osw=new OutputStreamWriter(fos,StandardCharsets.UTF_8);
-		System.out.println("========="+path+"==============");
+		if(log)System.out.println("========="+path+"==============");
 		try {
 			map.forEach(new BiConsumer<String,String>(){
 			@Override
@@ -266,7 +272,7 @@ public class BouyomiProxy{
 					osw.write("\t");
 					osw.write(val);
 					osw.write("\n");
-					System.out.println("k="+key+" v="+val);
+					if(log)System.out.println("k="+key+" v="+val);
 				}catch(IOException e){
 					e.printStackTrace();
 				}

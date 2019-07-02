@@ -2,6 +2,9 @@ package bouyomi;
 
 import static bouyomi.BouyomiProxy.*;
 
+import java.util.Map.Entry;
+
+import bouyomi.Counter.CountData;
 import bouyomi.DiscordBOT.BouyomiBOTConection;
 import bouyomi.DiscordBOT.DiscordAPI;
 import bouyomi.Util.Pass;
@@ -45,7 +48,7 @@ public class Tag{
 		tag=getTag("ユーザID","ユーザＩＤ","ユーザーＩＤ","ユーザーID");
 		if(tag!=null) {
 			if(!tag.isEmpty()) {
-				String id=Counter.getUserID(tag);
+				String id=getUserID(tag);
 				System.out.println("ID取得「"+tag+"」のID="+id);
 				if(con.mute);
 				else if(id==null)chatDefaultHost("取得失敗");
@@ -181,5 +184,22 @@ public class Tag{
 	public boolean isAdmin(){
 		if(BouyomiProxy.admin==null)return false;
 		return BouyomiProxy.admin.isAdmin(con.userid);
+	}
+	public String getUserName(String id) {
+		if(con instanceof BouyomiBOTConection) {
+			return ((BouyomiBOTConection)con).server.getMemberById(id).getNickname();
+		}
+		CountData cd=Counter.usercount.get(id);
+		if(cd==null)return null;
+		return cd.name;
+	}
+	public String getUserID(String id) {
+		if(con instanceof BouyomiBOTConection) {
+			return ((BouyomiBOTConection)con).server.getMemberById(id).getUser().getId();
+		}
+		for(Entry<String, CountData> e:Counter.usercount.entrySet()) {
+			if(id.equals(e.getValue().name))return e.getKey();
+		}
+		return null;
 	}
 }

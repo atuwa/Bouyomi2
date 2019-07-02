@@ -252,7 +252,7 @@ public class DiscordBOT extends ListenerAdapter{
 			}
 		}, jda.getCallbackPool());
 		try{
-			cf.get(1000,TimeUnit.MILLISECONDS);
+			cf.get(2000,TimeUnit.MILLISECONDS);
 		}catch(Exception e1){
 			e1.printStackTrace();
 		}
@@ -359,5 +359,12 @@ public class DiscordBOT extends ListenerAdapter{
 				e.printStackTrace();
 			}
 		}
+	}
+	public String getName(String id){
+		return jda.getUserById(id).getName();
+	}
+	public String getNick(String gid,String id){
+		Guild g=jda.getGuildById(gid);
+		return g.getMemberById(id).getNickname();
 	}
 }
