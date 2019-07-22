@@ -20,6 +20,7 @@ import bouyomi.DiscordBOT.BouyomiBOTConection;
 import bouyomi.IModule.BouyomiEvent;
 import net.dv8tion.jda.api.entities.Emote;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 public class BouyomiConection implements Runnable{
@@ -141,7 +142,20 @@ public class BouyomiConection implements Runnable{
 			System.out.println(text);//ログに残す
 			System.out.println(user);
 			String d=new SimpleDateFormat("yyyy/MM/dd HH時mm分ss秒").format(new Date());
-			study_log.log(userid+"\t"+user+"\t"+d+"\t"+text);
+			text.replaceAll("\t","    ");
+			StringBuilder sb=new StringBuilder(userid);
+			sb.append("\t").append(user);
+			sb.append("\t").append(d);
+			sb.append("\t").append(text);
+			if(this instanceof BouyomiBOTConection) {
+				MessageChannel c=((BouyomiBOTConection)this).channel;
+				sb.append("\t").append(c.getId());
+				sb.append("\t").append(c.getName());
+				Guild g=((BouyomiBOTConection)this).event.getGuild();
+				sb.append("\t").append(g.getId());
+				sb.append("\t").append(g.getName());
+			}
+			study_log.log(sb.toString());
 		}else if(text.indexOf("忘却(")>=0||text.indexOf("忘却（")>=0){//忘却機能を使おうとした時
 			System.out.println(text);//ログに残す
 			System.out.println(user);
@@ -187,7 +201,7 @@ public class BouyomiConection implements Runnable{
 		boolean source=false;
 		for(int i=0;i<text.length();i++){//文字データを1文字ずつ読み込む
 			char r=text.charAt(i);//現在位置の文字を取得
-			if((r=='ゝ'||r=='ゞ')&&i>0)r=lc;//text.charAt(i-1);
+			if((r=='ゝ'||r=='ゞ'||r=='々')&&i>0)r=lc;//text.charAt(i-1);
 			//連続カウントが2以上で次の文字が`の場合source判定
 			if(cc>0&&r=='`'){
 				source=!source;
