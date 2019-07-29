@@ -56,6 +56,7 @@ public class DiscordBOT extends ListenerAdapter{
 	public final int id;
 	public List<String> whiteListS=new ArrayList<String>();
 	public List<String> whiteListC=new ArrayList<String>();
+	/**k=チャンネル v=ホスト*/
 	public HashMap<String,String> speakListC=new HashMap<String,String>();
 	private static int lastID;
 	private static ExecutorService pool=new ThreadPoolExecutor(1, Integer.MAX_VALUE,60L, TimeUnit.SECONDS,
@@ -148,7 +149,7 @@ public class DiscordBOT extends ListenerAdapter{
 				if(whiteListC.contains(cid)){
 					threads++;
 					if(threads>3)System.err.println("警告：実行中のメッセージスレッドが"+threads+"件です");
-					BouyomiBOTConection con=new BouyomiBOTConection(event);
+					BouyomiBOTConection con=new BouyomiBOTConection(this,event);
 					String h=speakListC.get(cid);
 					if(con.speak=(h!=null))con.bouyomiHost=h;
 					pool.execute(con);//スレッドプールで実行する
@@ -180,7 +181,8 @@ public class DiscordBOT extends ListenerAdapter{
 		public final MessageReceivedEvent event;
 		public final MessageChannel channel;
 		public final TextChannel textChannel;
-		public BouyomiBOTConection(MessageReceivedEvent event){
+		public final DiscordBOT bot;
+		private BouyomiBOTConection(DiscordBOT bot,MessageReceivedEvent event){
 			super.user=event.getMember().getEffectiveName();
 			super.userid=event.getMember().getUser().getId();
 			super.text=event.getMessage().getContentRaw();
@@ -188,6 +190,7 @@ public class DiscordBOT extends ListenerAdapter{
 			server=event.getGuild();
 			channel=event.getChannel();
 			textChannel=event.getTextChannel();
+			this.bot=bot;
 			List<Attachment> as=event.getMessage().getAttachments();
 			if(as!=null&&as.size()>0) {
 				list=as.toArray(new Attachment[as.size()]);

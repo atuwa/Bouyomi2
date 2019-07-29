@@ -2,6 +2,7 @@ package bouyomi;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -11,6 +12,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Map;
@@ -108,7 +111,7 @@ public class Util{
 	}
 	public static class SaveProxyData implements IAutoSave{
 
-		public final String file;
+		private String file;
 		private BufferedOutputStream logFileOS;
 		public SaveProxyData(String logFile) {
 			file=logFile;
@@ -119,6 +122,42 @@ public class Util{
 				e.printStackTrace();
 			}
 			IAutoSave.Register(this);
+		}
+		public String getFile() {
+			return file;
+		}
+		public void changeFile(String s) throws IOException{
+			if(logFileOS!=null) try{
+				logFileOS.close();
+			}catch(IOException e1){
+				e1.printStackTrace();
+			}
+			Files.move(Paths.get(file),Paths.get(s));
+			file=s;
+			try{
+				FileOutputStream fos=new FileOutputStream(s,true);//追加モードでファイルを開く
+				logFileOS=new BufferedOutputStream(fos);
+			}catch(FileNotFoundException e){
+				e.printStackTrace();
+			}
+		}
+		public void nextFile() {
+			int i=1;
+			while(true) {
+				File f=new File(insert(String.valueOf(i)));
+				if(!f.exists())break;
+				i++;
+			}
+			try{
+				changeFile(insert(String.valueOf(i)));
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+		}
+		private String insert(String s) {
+			int index=file.lastIndexOf('.');
+			if(index>0&&index<file.length())return file.substring(0,index)+s+file.substring(index);
+			return "";
 		}
 		public void log(String s) {
 			try{

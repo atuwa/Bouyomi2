@@ -187,7 +187,7 @@ public class Tag{
 	}
 	public String getUserName(String id) {
 		if(con instanceof BouyomiBOTConection) {
-			return ((BouyomiBOTConection)con).server.getMemberById(id).getNickname();
+			return ((BouyomiBOTConection)con).server.getMemberById(id).getEffectiveName();
 		}
 		CountData cd=Counter.usercount.get(id);
 		if(cd==null)return null;
