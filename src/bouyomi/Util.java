@@ -112,9 +112,11 @@ public class Util{
 	public static class SaveProxyData implements IAutoSave{
 
 		private String file;
+		private String base_file;
 		private BufferedOutputStream logFileOS;
 		public SaveProxyData(String logFile) {
-			file=logFile;
+			base_file=logFile;
+			file=base_file;
 			try{
 				FileOutputStream fos=new FileOutputStream(logFile,true);//追加モードでファイルを開く
 				logFileOS=new BufferedOutputStream(fos);
@@ -155,8 +157,8 @@ public class Util{
 			}
 		}
 		private String insert(String s) {
-			int index=file.lastIndexOf('.');
-			if(index>0&&index<file.length())return file.substring(0,index)+s+file.substring(index);
+			int index=base_file.lastIndexOf('.');
+			if(index>0&&index<base_file.length())return base_file.substring(0,index)+s+base_file.substring(index);
 			return "";
 		}
 		public void log(String s) {
