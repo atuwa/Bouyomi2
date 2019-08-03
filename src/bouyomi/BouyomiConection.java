@@ -330,7 +330,7 @@ public class BouyomiConection implements Runnable{
 		if(text.indexOf("@")>=0){//@がある時はメンション抽出
 			//System.out.println(text);//ログに残す
 			//DiscordAPI.chatDefaultHost(text);
-			Matcher m=Pattern.compile("<@!?[0-9]++>").matcher(text);
+			Matcher m=Pattern.compile("<@!?"+Pattern.quote("&")+"?[0-9]++>").matcher(text);
 			StringBuffer sb = new StringBuffer();
 			while(m.find()) {
 				m.appendReplacement(sb, "");
