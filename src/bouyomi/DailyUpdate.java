@@ -17,8 +17,8 @@ import bouyomi.ListMap.Value;
 public class DailyUpdate extends Thread{
 	public static DailyUpdate updater;
 	public ListMap<String,IDailyUpdate> target=new ListMap<String,IDailyUpdate>();
-	private static final String gid="533577441952661504";
-	private static final String cid="569063021918552074";
+	private static final String gid="566942640986390528";
+	private static final String cid="566943792033169418";
 	public static interface IDailyUpdate{
 		public void update();
 		public default void init() {};

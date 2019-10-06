@@ -42,6 +42,7 @@ public class BouyomiProxy{
 	public static String log_guild=null,log_channel=null;
 	//main関数、スタート地点
 	public static void main(String[] args) throws IOException{
+		long time=System.currentTimeMillis();
 		Boot.load("config.conf");
 		InputStreamReader isr=new InputStreamReader(System.in);
 		final BufferedReader br=new BufferedReader(isr);//コンソールから1行ずつ取得する為のオブジェクト
@@ -175,10 +176,11 @@ public class BouyomiProxy{
 		}
 		System.out.println("モジュール"+(module==null||!module.isActive()?"無し":module.path));
 		DailyUpdate.updater.start();
-		System.out.println("exitで終了");
 		//スレッドプールを用意(最低1スレッド維持、空きスレッド60秒維持)
 		ExecutorService pool=new ThreadPoolExecutor(1, Integer.MAX_VALUE,60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>());
+		System.out.println("起動時間合計"+(System.currentTimeMillis()-time)+"ms");
+		System.out.println("exitで終了");
 		int threads=0;
 		while(true){//無限ループ
 			threads++;
@@ -282,6 +284,67 @@ public class BouyomiProxy{
 			osw.flush();
 			osw.close();
 		}
+	}
+	public static int ConectionTest(String host) {
+		Socket soc=null;
+		try{
+			//System.out.println("棒読みちゃんに接続");
+			int tab=host.indexOf(':');
+			if(tab<0||tab+1>host.length()) {
+				soc=new Socket("localhost",Integer.parseInt(host));
+			}else {
+				String key=host.substring(0,tab);
+				String val=host.substring(tab+1);
+				soc=new Socket(key,Integer.parseInt(val));
+			}
+			soc.setSoTimeout(1000);
+			OutputStream os=soc.getOutputStream();
+			//System.out.println("棒読みちゃんに接続完了"+host);
+			short volume=-1;//音量　棒読みちゃん設定
+			short speed=-1;//速度　棒読みちゃん設定
+			short tone=-1;//音程　棒読みちゃん設定
+			short voice=0;//声質　棒読みちゃん設定
+			byte messageData[]=null;
+			try{
+				messageData="。".getBytes("UTF-8");
+			}catch(UnsupportedEncodingException e){
+				e.printStackTrace();
+			}
+			int length=messageData.length;
+			byte data[]=new byte[15+length];
+			data[0]=(byte) 1; // コマンド 1桁目
+			data[1]=(byte) 0; // コマンド 2桁目
+			data[2]=(byte) ((speed>>>0)&0xFF); // 速度 1桁目
+			data[3]=(byte) ((speed>>>8)&0xFF); // 速度 2桁目
+			data[4]=(byte) ((tone>>>0)&0xFF); // 音程 1桁目
+			data[5]=(byte) ((tone>>>8)&0xFF); // 音程 2桁目
+			data[6]=(byte) ((volume>>>0)&0xFF); // 音量 1桁目
+			data[7]=(byte) ((volume>>>8)&0xFF); // 音量 2桁目
+			data[8]=(byte) ((voice>>>0)&0xFF); // 声質 1桁目
+			data[9]=(byte) ((voice>>>8)&0xFF); // 声質 2桁目
+			data[10]=(byte) 0; // エンコード(0: UTF-8)
+			data[11]=(byte) ((length>>>0)&0xFF); // 長さ 1桁目
+			data[12]=(byte) ((length>>>8)&0xFF); // 長さ 2桁目
+			data[13]=(byte) ((length>>>16)&0xFF); // 長さ 3桁目
+			data[14]=(byte) ((length>>>24)&0xFF); // 長さ 4桁目
+			System.arraycopy(messageData,0,data,15,length);
+			send(host,data);
+			os.write(data);
+			return 0;
+		}catch(ConnectException e) {
+			return 1;
+		}catch(UnknownHostException e){
+			e.printStackTrace();
+		}catch(IOException e){
+			e.printStackTrace();
+		}finally {
+			try{
+				if(soc!=null)soc.close();
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+		}
+		return 2;
 	}
 	private static int send_errors;
 	/**棒読みちゃんに送信する

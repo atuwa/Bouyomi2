@@ -10,7 +10,7 @@ import bouyomi.DiscordBOT.DiscordAPI;
 import bouyomi.Util.Pass;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public class Tag{
@@ -25,20 +25,20 @@ public class Tag{
 		}
 		return null;
 	}
-	public TextChannel getTextChannel(){//botc.event.getTextChannel()
+	public MessageChannel getChannel(){//botc.event.getTextChannel()
 		if(con instanceof BouyomiBOTConection) {
-			return ((BouyomiBOTConection)con).event.getTextChannel();
+			return ((BouyomiBOTConection)con).event.getChannel();
 		}
 		return null;
 	}
 	/**自作プロキシの追加機能*/
 	public void call() {
+		if(module!=null)module.precall(this);
 		if(con.text.equals("!help")) {
 			chatDefaultHost("説明(仮) https://github.com/atuwa/Bouyomi/wiki");
 			con.text="";
 			return;
 		}
-		if(module!=null)module.precall(this);
 		if(module!=null)module.call(this);
 		Counter.count(this);
 		String tag=getTag("強制終了");
@@ -136,10 +136,44 @@ public class Tag{
 	}
 	/**タグ取得*/
 	public String getTag(String key) {
+		TagCommand tc=getTagCommand(key);
+		if(tc==null)return null;
+		tc.removeTag();
+		if(isTagTrim)return tc.toString();
+		return tc.value;
+	}
+	public static class TagCommand{
+		public String key;
+		public String value;
+		public Tag tag;
+		public TagCommand(Tag tag2, String key2,String val){
+			key=key2;
+			value=val;
+			tag=tag2;
+		}
+		public void removeTag() {
+			tag.removeTag(key,value);
+		}
+		public void replaceTag(String s) {
+			tag.replaceTag(key,value,s);
+		}
+		@Override
+		public String toString() {
+			return value.trim();
+		}
+	}
+	public TagCommand getTagCommand(String... key) {
+		for(String s:key) {
+			TagCommand t=getTagCommand(s);
+			if(t!=null)return t;
+		}
+		return null;
+	}
+	public TagCommand getTagCommand(String key) {
 		if(con.text.length()<1)return null;
 		if(con.text.equals(key)) {
 			//DiscordAPI.chatDefaultHost(key+"タグを検出しました");
-			return "";
+			return new TagCommand(this,key,"");
 		}
 		int index=con.text.indexOf(key+"(");
 		if(index<0)index=con.text.indexOf(key+"（");
@@ -150,17 +184,18 @@ public class Tag{
 		if(ki<0)return null;//閉じカッコが無い時
 		if(ki<index+key.length()+1)return null;//閉じカッコの位置がおかしい時
 		if(ki==index+key.length()+1) {
-			removeTag(key,"");
 			//DiscordAPI.chatDefaultHost(key+"タグを検出しました");
-			return "";//0文字
+			return new TagCommand(this, key,"");//0文字
 		}
 		String tag=con.text.substring(index+key.length()+1,ki);
 		//System.out.println("タグ取得k="+key+"v="+tag);
-		removeTag(key,tag);
 		//DiscordAPI.chatDefaultHost(key+"タグを検出しました");
-		return isTagTrim?tag.trim():tag;
+		return new TagCommand(this, key,tag);
 	}
 	public void removeTag(String tagName,String val) {
+		replaceTag(tagName,val,null);
+	}
+	public void replaceTag(String tagName,String val,String replace){
 		//System.out.println("元データ　"+con.text);
 		StringBuilder sb0=new StringBuilder(tagName);
 		sb0.append("(").append(val);//これ半角しか削除できない
@@ -177,6 +212,7 @@ public class Tag{
 		}
 		StringBuilder sb=new StringBuilder();
 		if(index>0)sb.append(con.text.substring(0,index));//タグで始まる時以外
+		if(replace!=null)sb.append(replace);
 		if(con.text.length()>index+remove.length())sb.append(con.text.substring(index+remove.length()+1));
 		con.text=sb.toString();
 		//System.out.println("タグ消去結果　"+con.text);
@@ -185,11 +221,15 @@ public class Tag{
 		if(BouyomiProxy.admin==null)return false;
 		return BouyomiProxy.admin.isAdmin(con.userid);
 	}
+	public String getUserNick(String id) {
+		if(con instanceof BouyomiBOTConection) {
+			return ((BouyomiBOTConection)con).bot.getNick(((BouyomiBOTConection)con).server.getId(),id);
+		}
+		return getUserName(id);
+	}
 	public String getUserName(String id) {
 		if(con instanceof BouyomiBOTConection) {
-			Member member=((BouyomiBOTConection)con).server.getMemberById(id);
-			if(member==null)return null;
-			return member.getEffectiveName();
+			return ((BouyomiBOTConection)con).bot.getName(id);
 		}
 		CountData cd=Counter.usercount.get(id);
 		if(cd==null)return null;

@@ -5,6 +5,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import bouyomi.Counter.ICountEvent;
 import bouyomi.IModule.BouyomiEvent;
@@ -16,6 +20,7 @@ public class ModuleLoader{
 	public File path;
 	public void load(File f) {
 		if(!f.isDirectory())return;
+		long time=System.currentTimeMillis();
 		path=f;
 		try{
 			jars.add(f.getParentFile().toURI().toURL());
@@ -26,19 +31,43 @@ public class ModuleLoader{
 		jd.mkdir();
 		isJar(jd);
 		loader=new URLClassLoader(jars.toArray(new URL[jars.size()]));
+		ExecutorService pool=new ThreadPoolExecutor(0, Integer.MAX_VALUE,60L, TimeUnit.SECONDS,
+                new SynchronousQueue<Runnable>());
 		for(String s:f.list()) {
 			int i=s.lastIndexOf(".class");
 			if(i<=0||s.indexOf('$')>=0)continue;
 			String name=s.substring(0,i);
-			System.out.println("モジュール"+name);
+			System.out.println("モジュール："+name);
 			try{
 				Class<?> c=Class.forName(f.getName()+"."+name,true,loader);
+				pool.execute(new MakeInstance(c));;
 				//Class<?> c=loader.loadClass(f.getName()+"."+name);//どっちでもよさそう
-				load(c.newInstance());
-			}catch(InstantiationException | IllegalAccessException e){
-				//e.printStackTrace();
 			}catch(ClassNotFoundException | NoClassDefFoundError e) {
 				e.printStackTrace();
+			}
+		}
+		pool.shutdown();
+		try{
+			pool.awaitTermination(5,TimeUnit.MINUTES);
+		}catch(InterruptedException e){
+			e.printStackTrace();
+		}
+		System.out.println("モジュール読み込み時間"+(System.currentTimeMillis()-time)+"ms");
+	}
+	private class MakeInstance implements Runnable{
+		private Class<?> cls;
+		public MakeInstance(Class<?> c) {
+			cls=c;
+		}
+		@Override
+		public void run(){
+			try{
+				Object ins=cls.newInstance();
+				synchronized(modules) {
+					load(ins);
+				}
+			}catch(InstantiationException|IllegalAccessException e){
+				//e.printStackTrace();
 			}
 		}
 	}
@@ -65,26 +94,50 @@ public class ModuleLoader{
 	}
 	public void call(Tag t) {
 		if(modules.isEmpty())return;
-		for(IModule m:modules){
-			m.call(t);
+		synchronized(modules){
+			try{
+				for(IModule m:modules){
+					m.call(t);
+				}
+			}catch(Exception ex) {
+				ex.printStackTrace();
+			}
 		}
 	}
 	public void postcall(Tag t) {
 		if(modules.isEmpty())return;
-		for(IModule m:modules){
-			m.postcall(t);
+		synchronized(modules){
+			try{
+				for(IModule m:modules){
+					m.postcall(t);
+				}
+			}catch(Exception ex) {
+				ex.printStackTrace();
+			}
 		}
 	}
 	public void event(BouyomiEvent e){
 		if(modules.isEmpty())return;
-		for(IModule m:modules){
-			m.event(e);
+		synchronized(modules){
+			try{
+				for(IModule m:modules){
+					m.event(e);
+				}
+			}catch(Exception ex) {
+				ex.printStackTrace();
+			}
 		}
 	}
 	public void precall(Tag t){
 		if(modules.isEmpty())return;
-		for(IModule m:modules){
-			m.precall(t);
+		synchronized(modules){
+			try{
+				for(IModule m:modules){
+					m.precall(t);
+				}
+			}catch(Exception ex) {
+				ex.printStackTrace();
+			}
 		}
 	}
 }

@@ -12,8 +12,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Map;
@@ -134,7 +132,7 @@ public class Util{
 			}catch(IOException e1){
 				e1.printStackTrace();
 			}
-			Files.move(Paths.get(file),Paths.get(s));
+			//Files.move(Paths.get(file),Paths.get(s));
 			file=s;
 			try{
 				FileOutputStream fos=new FileOutputStream(s,true);//追加モードでファイルを開く

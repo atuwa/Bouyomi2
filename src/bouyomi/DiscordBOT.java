@@ -34,9 +34,11 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.HttpException;
@@ -73,7 +75,7 @@ public class DiscordBOT extends ListenerAdapter{
 			if(DiscordBOT.DefaultHost==null)return false;
 			if(con instanceof BouyomiBOTConection) {
 				BouyomiBOTConection botc=(BouyomiBOTConection)con;
-				DiscordBOT.DefaultHost.log("「"+botc.server.getName()+"」の「"+botc.event.getTextChannel().getName()+"」で\n```\n"+string+"\n```");
+				DiscordBOT.DefaultHost.log("「"+botc.server_Name+"」の「"+botc.event.getChannel().getName()+"」で\n```\n"+string+"\n```");
 			}
 			return DiscordBOT.DefaultHost.send(con,string);
 		}
@@ -133,40 +135,38 @@ public class DiscordBOT extends ListenerAdapter{
 	}
 	@Override
 	public void onMessageReceived(MessageReceivedEvent event){
-		if(event.isFromType(ChannelType.PRIVATE)){
-			System.out.printf("[PM] %s: %s\n",event.getAuthor().getName(),event.getMessage().getContentDisplay());
-		}else{
-			if(!Boot.loadend)while(!Boot.loadend) {
-				try{
-					Thread.sleep(100);
-				}catch(InterruptedException e){
-					e.printStackTrace();
-				}
+		if(!Boot.loadend)while(!Boot.loadend) {
+			try{
+				Thread.sleep(100);
+			}catch(InterruptedException e){
+				e.printStackTrace();
 			}
-			//test(event);
-			if(whiteListS.isEmpty()||whiteListS.contains(event.getGuild().getId())){
-				String cid=event.getTextChannel().getId();
-				if(whiteListC.contains(cid)){
-					threads++;
-					if(threads>3)System.err.println("警告：実行中のメッセージスレッドが"+threads+"件です");
-					BouyomiBOTConection con=new BouyomiBOTConection(this,event);
-					String h=speakListC.get(cid);
-					if(con.speak=(h!=null))con.bouyomiHost=h;
-					pool.execute(con);//スレッドプールで実行する
-					threads--;
-				}else {
-					//System.out.println("対象外"+event.getTextChannel().getName());
-				}
+		}
+		boolean PM=event.isFromType(ChannelType.PRIVATE)&&
+				(whiteListS.contains("PrivateMessage")||whiteListC.contains("PrivateMessage"));
+		//test(event);
+		if(PM||whiteListS.isEmpty()||whiteListS.contains(event.getGuild().getId())){
+			String cid=event.getChannel().getId();
+			if(PM||whiteListC.contains(cid)){
+				threads++;
+				if(threads>3)System.err.println("警告：実行中のメッセージスレッドが"+threads+"件です");
+				BouyomiBOTConection con=new BouyomiBOTConection(this,event);
+				String h=speakListC.get(cid);
+				if(con.speak=(h!=null))con.bouyomiHost=h;
+				pool.execute(con);//スレッドプールで実行する
+				threads--;
+			}else {
+				//System.out.println("対象外"+event.getTextChannel().getName());
 			}
 		}
 	}
 	public void log(String s) {
-		if(BouyomiProxy.log_guild==null||BouyomiProxy.log_channel==null)return;
-		Guild g=jda.getGuildById(BouyomiProxy.log_guild);
+		if(BouyomiProxy.log_channel==null)return;
+		//Guild g=jda.getGuildById(BouyomiProxy.log_guild);
 		TextChannel c=jda.getTextChannelById(BouyomiProxy.log_channel);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日HH時mm分");
 		s=sdf.format(new Date())+"\n"+s;
-		send(g,c,s);
+		send(c,s);
 	}
 	public Guild getGuild(String gid) {
 		return jda.getGuildById(gid);
@@ -177,19 +177,27 @@ public class DiscordBOT extends ListenerAdapter{
 	public static class BouyomiBOTConection extends BouyomiConection{
 		public final String userName;
 		public final Guild server;
+		public final String server_Name;
 		public final Attachment[] list;
 		public final MessageReceivedEvent event;
 		public final MessageChannel channel;
-		public final TextChannel textChannel;
 		public final DiscordBOT bot;
 		private BouyomiBOTConection(DiscordBOT bot,MessageReceivedEvent event){
-			super.user=event.getMember().getEffectiveName();
-			super.userid=event.getMember().getUser().getId();
+			this.event=event;
+			Member member=event.getMember();
+			super.user=member==null?getUser().getName():member.getEffectiveName();
+			super.userid=getUser().getId();
 			super.text=event.getMessage().getContentRaw();
-			userName=event.getMember().getUser().getName();
-			server=event.getGuild();
+			userName=getUser().getName();
+			//server=event.getGuild();
+			if(!event.isFromType(ChannelType.TEXT)) {
+				server_Name=event.getAuthor().getName()+"のPM";
+				server=null;
+			}else{
+				server_Name=event.getGuild().getName();
+				server=event.getGuild();
+			}
 			channel=event.getChannel();
-			textChannel=event.getTextChannel();
 			this.bot=bot;
 			List<Attachment> as=event.getMessage().getAttachments();
 			if(as!=null&&as.size()>0) {
@@ -198,8 +206,10 @@ public class DiscordBOT extends ListenerAdapter{
 				for(Attachment a:list)sb.append(" file://").append(a.getFileName());
 				text=sb.toString();
 			}else list=new Attachment[0];
-			this.event=event;
 			//System.err.println(text);
+		}
+		public User getUser(){
+			return event.getAuthor();
 		}
 	}
 	public void setUserName(String name) {
@@ -279,43 +289,47 @@ public class DiscordBOT extends ListenerAdapter{
 	public boolean send(BouyomiConection bc,String c){
 		if(bc instanceof BouyomiBOTConection) {
 			BouyomiBOTConection botc=(BouyomiBOTConection)bc;
-			send(botc.server,botc.event.getTextChannel(),c);
+			send(botc.event.getChannel(),c);
 			return true;
 		}
 		return false;
 	}
 	public boolean send(String gid,String cid,String c){
-		Guild g=jda.getGuildById(gid);
+		return send(cid,c);
+	}
+	public boolean send(String cid,String c){
+		//Guild g=jda.getGuildById(gid);
+		jda.getPrivateChannelById(cid);
 		TextChannel tc=jda.getTextChannelById(cid);
-		if(g==null||tc==null)return false;
-		send(c,g,tc,(NamedFileObject)null);
+		if(tc==null)return false;
+		send(c,tc,(NamedFileObject)null);
 		return true;
 	}
-	public void send(Guild g,TextChannel tc,String c){
-		send(c,g,tc,(NamedFileObject)null);
+	public void send(MessageChannel tc,String c){
+		send(c,tc,(NamedFileObject)null);
 	}
-	public void send(String c,Guild g,TextChannel tc,byte[]... bi){
+	public void send(String c,MessageChannel tc,byte[]... bi){
 		NamedFileObject[] fo=new NamedFileObject[bi.length];
 		for(int i=0;i<bi.length;i++) {
 			ByteArrayInputStream is=new ByteArrayInputStream(bi[i]);
 			fo[i]=new NamedFileObject(is,"byte"+i);
 		}
-		send(c,g,tc,fo);
+		send(c,tc,fo);
 	}
-	public void send(String c,Guild g,TextChannel tc,File... in) throws FileNotFoundException{
+	public void send(String c,MessageChannel tc,File... in) throws FileNotFoundException{
 		NamedFileObject[] fo=new NamedFileObject[in.length];
 		for(int i=0;i<in.length;i++) {
 			FileInputStream is=new FileInputStream(in[i]);
 			fo[i]=new NamedFileObject(is,in[i].getName());
 		}
-		send(c,g,tc,fo);
+		send(c,tc,fo);
 	}
-	public void send(String c,Guild g,TextChannel tc,InputStream... is){
+	public void send(String c,MessageChannel tc,InputStream... is){
 		NamedFileObject[] fo=new NamedFileObject[is.length];
 		for(int i=0;i<is.length;i++) {
 			fo[i]=new NamedFileObject(is[i],"stream"+i);
 		}
-		send(c,g,tc,fo);
+		send(c,tc,fo);
 	}
 	public static class NamedFileObject{
 		public InputStream is;
@@ -325,10 +339,12 @@ public class DiscordBOT extends ListenerAdapter{
 			name=s;
 		}
 	}
-	public void send(String c,Guild pg,TextChannel ptc,NamedFileObject... fo){
-		if(pg==null||ptc==null)return;
-		Guild g=jda.getGuildById(pg.getIdLong());
-		TextChannel tc=g.getTextChannelById(ptc.getIdLong());
+	public void send(String c,MessageChannel ptc,NamedFileObject... fo){
+		if(ptc==null)return;
+		MessageChannel tc=jda.getTextChannelById(ptc.getIdLong());
+		if(tc==null)tc=jda.getPrivateChannelById(ptc.getIdLong());
+		if(tc==null)jda.getGuildChannelById(ptc.getId());
+		if(tc==null)return;
 		//System.out.println(g.getMember(jda.getSelfUser()).getEffectiveName()+"<"+c);
 		//System.out.println("send="+c);
 		MessageAction ma=tc.sendMessage(new MessageBuilder().append(c).build());
@@ -368,6 +384,8 @@ public class DiscordBOT extends ListenerAdapter{
 	}
 	public String getNick(String gid,String id){
 		Guild g=jda.getGuildById(gid);
-		return g.getMemberById(id).getNickname();
+		String nick=g.getMemberById(id).getNickname();
+		if(nick==null)return getName(id);
+		return nick;
 	}
 }

@@ -13,6 +13,7 @@ public class Boot{
 	private static int loadBots;
 	public static boolean loadend;
 	public static void load(String path) throws IOException {
+		long time=System.currentTimeMillis();
 		ListMap<String,String> map=new ListMap<String,String>();
 		FileInputStream fos=new FileInputStream(path);
 		InputStreamReader isr=new InputStreamReader(fos,StandardCharsets.UTF_8);
@@ -42,12 +43,13 @@ public class Boot{
 				}
 				map.put(key,val);
 			}
-			if(map.containsKey("token"))loadBOT(map);
+			//if(map.containsKey("token"))loadBOT(map);
 		}catch(FileNotFoundException fnf){
 
 		}finally {
 			br.close();
 		}
+		System.out.println("BOTログイン時間合計"+(System.currentTimeMillis()-time)+"ms");
 		new Thread("起動確認") {
 			public void run() {
 				while(true) {
@@ -63,10 +65,12 @@ public class Boot{
 		}.start();
 	}
 	public static void loadBOT(ListMap<String,String> map) {
+		long time=System.currentTimeMillis();
 		String token=map.get("token");
 		try{
 			loadBots++;
 			new DiscordBOT(token,map);
+			System.out.println("BOT"+loadBots+"ログイン時間"+(System.currentTimeMillis()-time)+"ms");
 		}catch(LoginException e){
 			e.printStackTrace();
 			loadBots--;

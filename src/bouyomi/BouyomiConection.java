@@ -280,9 +280,9 @@ public class BouyomiConection implements Runnable{
 				e.printStackTrace(pw);
 				pw.flush();
 				sw.append("\n```");
-				Guild g=b.jda.getGuildById(BouyomiProxy.log_guild);
+				//Guild g=b.jda.getGuildById(BouyomiProxy.log_guild);
 				TextChannel c=b.jda.getTextChannelById(BouyomiProxy.log_channel);
-				b.send(g,c,sw.toString());
+				b.send(c,sw.toString());
 			}
 		}
 		//System.out.println((System.nanoTime()-start)+"ns");//TODO 処理時間計測用
@@ -312,11 +312,14 @@ public class BouyomiConection implements Runnable{
 				//Matcher m2=Pattern.compile(":[a-zA-Z0-9]*:[0-9]++").matcher(m.group());
 				if(m2.find()&&this instanceof BouyomiBOTConection) {
 					String g=m2.group();
-					Emote e=((BouyomiBOTConection)this).server.getEmoteById(g.substring(0,g.length()-1));
-					if(e!=null) {
-						m.appendReplacement(sb, "");
-						//System.out.println(e.getName());
-					}else System.err.println(m2.group());
+					Guild s=((BouyomiBOTConection)this).server;
+					if(s!=null) {
+						Emote e=s.getEmoteById(g.substring(0,g.length()-1));
+						if(e!=null) {
+							m.appendReplacement(sb, "");
+							//System.out.println(e.getName());
+						}else System.err.println(m2.group());
+					}
 				}else m.appendReplacement(sb, "");
 				//System.out.println(m2.group());
 			}
@@ -333,10 +336,22 @@ public class BouyomiConection implements Runnable{
 			Matcher m=Pattern.compile("<@!?"+Pattern.quote("&")+"?[0-9]++>").matcher(text);
 			StringBuffer sb = new StringBuffer();
 			while(m.find()) {
-				m.appendReplacement(sb, "");
 				Matcher m2=Pattern.compile("[0-9]++").matcher(m.group());
 				m2.find();
 				mentions.add(m2.group());
+				/*
+				if(this instanceof BouyomiBOTConection) {
+					BouyomiBOTConection bc=(BouyomiBOTConection)this;
+					if(bc.server!=null) {
+						String id=m2.group();
+						String nick=DiscordBOT.DefaultHost.getNick(bc.server.getId(),id);
+						if(nick==null)nick=DiscordBOT.DefaultHost.getName(id);
+						m.appendReplacement(sb,nick);
+					}
+					else m.appendReplacement(sb, "");
+				}else
+				*/
+				m.appendReplacement(sb, "");
 			}
 			m.appendTail(sb);
 			text=sb.toString();
