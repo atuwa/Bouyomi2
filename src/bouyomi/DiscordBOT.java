@@ -39,6 +39,7 @@ import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.HttpException;
@@ -122,6 +123,21 @@ public class DiscordBOT extends ListenerAdapter{
 	public List<String> whiteListC() {
 		return whiteListC;
 	}
+    public void onGenericEvent(@Nonnull GenericEvent event) {
+    	try {
+    		if(BouyomiProxy.module!=null&&BouyomiProxy.module.modules!=null) {
+        		for(int i=0;i<BouyomiProxy.module.modules.size();i++){
+        			try{
+        				BouyomiProxy.module.modules.get(i).onGenericEvent(event);
+        			}catch(Exception e) {
+        				e.printStackTrace();
+        			}
+        		}
+        	}
+    	}catch(Exception e) {
+    		e.printStackTrace();
+    	}
+    }
 	public void onReady(ReadyEvent event){
 		bots.add(this);
 		JDA jda=event.getJDA();
